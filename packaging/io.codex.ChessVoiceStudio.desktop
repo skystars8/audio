@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Chess Voice Studio
+Comment=Create offline speech from typed text with hundreds of voices
+Exec=chess-voice-studio
+Icon=audio-input-microphone
+Terminal=false
+Categories=AudioVideo;Audio;Utility;
+Keywords=tts;speech;voice;chess;offline;
+
