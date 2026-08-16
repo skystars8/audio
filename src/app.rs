@@ -742,52 +742,69 @@ impl ChessVoiceApp {
                             &installed_voice.key,
                             installed_voice.num_speakers,
                         );
-                        let current_label = (entry.key != FEATURED_VOICE).then(|| {
-                            installed_voice
-                                .speaker_id_map
-                                .iter()
-                                .find_map(|(label, id)| {
-                                    (*id == speaker_id).then_some(label.as_str())
-                                })
-                                .map(str::to_owned)
-                                .unwrap_or_else(|| entry.speaker_label(speaker_id))
-                        });
+                        let voice_label = |id: u32| {
+                            if entry.key == FEATURED_VOICE {
+                                format!("Voice {:03}", id + 1)
+                            } else {
+                                entry.speaker_label(id)
+                            }
+                        };
+                        let can_test_voice = !self.busy
+                            && self.engine.is_some()
+                            && !self.preferences.text.trim().is_empty();
+                        let mut test_voice = false;
 
-                        ui.horizontal(|ui| {
-                            ui.label("Voice number");
-                            if ui.small_button("◀").clicked() {
+                        ui.horizontal_wrapped(|ui| {
+                            ui.label(egui::RichText::new("Choose a voice").strong());
+                            egui::ComboBox::from_id_salt(format!(
+                                "speaker_picker_{}",
+                                installed_voice.key
+                            ))
+                            .selected_text(voice_label(speaker_id))
+                            .width(145.0)
+                            .height(360.0)
+                            .show_ui(ui, |ui| {
+                                for candidate in 0..installed_voice.num_speakers {
+                                    ui.selectable_value(
+                                        &mut speaker_id,
+                                        candidate,
+                                        voice_label(candidate),
+                                    );
+                                }
+                            });
+                            if ui.small_button("Previous").clicked() {
                                 speaker_id = speaker_id.saturating_sub(1);
                             }
-                            let mut display_number = speaker_id + 1;
-                            let response = ui.add(
-                                egui::DragValue::new(&mut display_number)
-                                    .range(1..=installed_voice.num_speakers)
-                                    .speed(1.0),
-                            );
-                            if response.changed() {
-                                speaker_id = display_number.saturating_sub(1);
-                            }
-                            if ui.small_button("▶").clicked() {
+                            if ui.small_button("Next").clicked() {
                                 speaker_id = (speaker_id + 1)
                                     .min(installed_voice.num_speakers.saturating_sub(1));
                             }
-                            if ui.small_button("Surprise me").clicked() {
+                            if ui.small_button("Random voice").clicked() {
                                 speaker_id = random_speaker(installed_voice.num_speakers);
                             }
-                            ui.label(format!("of {}", installed_voice.num_speakers));
-                            if let Some(current_label) = current_label {
-                                ui.label(format!("· {current_label}"));
+                            if ui
+                                .add_enabled(
+                                    can_test_voice,
+                                    egui::Button::new("▶ Test selected voice"),
+                                )
+                                .clicked()
+                            {
+                                test_voice = true;
                             }
                         });
                         ui.label(
-                            egui::RichText::new(
-                                "Use the arrows, type a number, or choose Surprise me to switch voices.",
-                            )
+                            egui::RichText::new(format!(
+                                "{} choices are installed. Open the list, select a numbered voice, then test it with your script.",
+                                installed_voice.num_speakers
+                            ))
                             .weak(),
                         );
                         self.preferences
                             .speaker_ids
                             .insert(installed_voice.key.clone(), speaker_id);
+                        if test_voice {
+                            self.render(context, RenderTarget::Preview);
+                        }
                     }
 
                     ui.horizontal_wrapped(|ui| {

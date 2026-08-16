@@ -56,10 +56,14 @@ The application expects these runtime tools:
 1. Click **Install Piper engine**. This creates an isolated Python environment in the local
    `engine/` directory and installs `piper-tts` there.
 2. Open the permanent **Recommended · 904 English voices** card and click its install button.
-3. Move the voice-number control to try different speakers.
-4. Enter text, click **Generate & play**, then export WAV or MP3.
+3. Open **Choose a voice** to select from Voice 001 through Voice 904, or use **Random voice**.
+4. Click **Test selected voice**, then generate or export WAV or MP3 when you find one you like.
 
 After steps 1–2, synthesis and export are offline.
+
+The 904-speaker model does not publish reliable names, gender labels, or style descriptions for
+its speakers. The app therefore presents them consistently as Voice 001–Voice 904 and provides a
+one-click test button for auditioning each selection.
 
 ## Storage
 

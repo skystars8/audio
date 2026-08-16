@@ -49,7 +49,6 @@ pub struct InstalledVoice {
     pub model_path: PathBuf,
     pub config_path: PathBuf,
     pub model_card_path: Option<PathBuf>,
-    pub speaker_id_map: BTreeMap<String, u32>,
     pub num_speakers: u32,
 }
 
@@ -57,8 +56,6 @@ pub struct InstalledVoice {
 struct LocalVoiceConfig {
     #[serde(default)]
     num_speakers: u32,
-    #[serde(default)]
-    speaker_id_map: BTreeMap<String, u32>,
 }
 
 impl VoiceCatalog {
@@ -230,14 +227,6 @@ pub fn scan_installed(
             .ok()
             .and_then(|contents| serde_json::from_str::<LocalVoiceConfig>(&contents).ok());
         let catalog_entry = catalog.get(&key);
-        let speaker_id_map = catalog_entry
-            .map(|entry| entry.speaker_id_map.clone())
-            .or_else(|| {
-                local_config
-                    .as_ref()
-                    .map(|config| config.speaker_id_map.clone())
-            })
-            .unwrap_or_default();
         let num_speakers = catalog_entry
             .map(|entry| entry.num_speakers)
             .or_else(|| local_config.as_ref().map(|config| config.num_speakers))
@@ -251,7 +240,6 @@ pub fn scan_installed(
                 model_path,
                 config_path,
                 model_card_path,
-                speaker_id_map,
                 num_speakers,
             },
         );
